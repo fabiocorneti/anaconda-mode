@@ -88,7 +88,14 @@ Return nil if it run under proper environment."
 
 (defun anaconda-mode-bootstrap ()
   "Run anaconda-mode-command process."
-  (let ((default-directory anaconda-mode-directory))
+  (let ((default-directory anaconda-mode-directory)
+        (process-environment (copy-sequence process-environment)))
+    (--if-let python-shell-virtualenv-path
+        (if (file-exists-p (f-join it "Scripts" "python.exe"))
+            (progn
+              (setenv "VIRTUAL_ENV" it)
+              (setenv "PYTHONHOME" nil)
+              (setenv "PATH" (concat it ";" (getenv "PATH"))))))
     (setq anaconda-mode-process
           (start-process
            "anaconda_mode"
